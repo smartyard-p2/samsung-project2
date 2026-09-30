@@ -126,7 +126,7 @@ samsung-project2/
 
 | 항목 | 버전 |
 |---|---|
-| Python | 3.11 |
+| Python | **3.11 / 3.12 / 3.13** — ⚠️ 3.14 이상은 설치 실패 |
 | Node.js | _(웹 스택 확정 후 기재)_ |
 | DB | _(사용 여부 확정 후 기재)_ |
 
@@ -140,7 +140,12 @@ git switch <본인-역할-브랜치>
 
 ### 2. Python 환경
 
+> ⚠️ **파이썬 버전을 먼저 확인하세요.** `python --version`이 3.14 이상이면 패키지 설치가 실패합니다.
+> python.org에서 최신 버전을 그대로 받으면 3.14 이상이 설치됩니다. **3.12 또는 3.13**을 골라 설치하세요.
+
 ```bash
+python --version        # 3.11 / 3.12 / 3.13 인지 확인
+
 python -m venv .venv
 
 # Windows (PowerShell)
