@@ -229,6 +229,7 @@ data-infra ─┘
 - 남의 역할 브랜치에 Push, 남의 노트북 수정
 - 브랜치 삭제, 대규모 파일 삭제
 - 비밀정보(`.env`, API 키, 비밀번호) 커밋
+- 저장소 `Settings`, `Ruleset`, 협업자 권한 변경
 
 의도적으로 필요한 경우에는 조장의 확인을 받은 뒤 수행한다.
 
@@ -241,11 +242,18 @@ data-infra ─┘
 
 ### 12-7. 저장소 설정 (조장 담당)
 
-문서 규칙만으로는 사고를 막을 수 없으므로 GitHub 저장소 설정으로 함께 강제한다.
+문서 규칙만으로는 사고를 막을 수 없으므로 GitHub Ruleset으로 함께 강제한다. **현재 적용된 설정은 다음과 같다.**
 
-- `main` 브랜치 보호: 직접 Push 금지, Pull Request 필수, 승인 1명 이상
-- Force Push 및 브랜치 삭제 차단
-- 설정 변경 시 팀에 공유한다.
+| Ruleset | 대상 | 적용 규칙 |
+|---|---|---|
+| `main-protection` | `main` | Pull Request 필수(승인 1), 병합 방식 `merge`만, Force Push 차단, 브랜치 삭제 차단 |
+| `role-branches` | `eda`, `modeling`, `web`, `data-infra` | Force Push 차단, 브랜치 삭제 차단 (PR은 요구하지 않음) |
+
+두 Ruleset 모두 **조장만 예외(bypass)** 로 등록되어 있다.
+
+- 저장소 `Settings`와 Ruleset은 **조장만 변경한다.** 팀원 전원이 Owner 권한을 가지고 있어 기술적으로는 변경이 가능하지만, 이 규칙은 합의로 지킨다.
+- **Push가 거부되는 것은 대부분 저장소가 정상 동작하는 것이다.** 설정을 끄지 말고 현재 브랜치를 먼저 확인한다. 복구 방법은 [`docs/GIT_GUIDE.md` 6-2](docs/GIT_GUIDE.md#6-2-gh013-repository-rule-violations--main에-직접-올리려-했다)에 있다.
+- 설정을 변경하면 팀에 공유하고 이 표를 함께 수정한다.
 
 ## 13. AI 도구 사용 원칙
 

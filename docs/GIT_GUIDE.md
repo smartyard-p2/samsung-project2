@@ -207,6 +207,10 @@ git push                    # 합친 결과 올리기
 
 ## 6. push가 거부됐을 때
 
+거부 메시지는 크게 두 종류다. **메시지를 먼저 읽고** 어느 쪽인지 확인한다.
+
+### 6-1. `fetch first` / `non-fast-forward` — 남이 먼저 올렸다
+
 ```
 ! [rejected]        eda -> eda (fetch first)
 error: failed to push some refs to ...
@@ -224,6 +228,19 @@ git push
 `git pull` 중 충돌이 나면 → [7. 충돌](#7-충돌conflict이-났을-때)
 
 > 🚫 이때 `git push --force`를 쓰면 **다른 사람의 작업이 사라진다.** 절대 쓰지 않는다.
+
+### 6-2. `GH013: Repository rule violations` — main에 직접 올리려 했다
+
+```
+remote: error: GH013: Repository rule violations found for refs/heads/main.
+remote: - Changes must be made through a pull request.
+! [remote rejected] main -> main (push declined due to repository rule violations)
+```
+
+**뜻:** `main` 브랜치는 보호되어 있어서 직접 push할 수 없다. 대부분 **역할 브랜치가 아니라 `main`에서 작업한 경우**다.
+
+**이건 저장소가 정상 동작하고 있는 것이다.** 설정을 바꾸려 하지 말고, 커밋을 역할 브랜치로 옮기면 된다.
+→ [8. main에 실수로 커밋했다](#main에-실수로-커밋했다)
 
 ---
 
@@ -329,6 +346,36 @@ git switch eda           # 올바른 브랜치로 이동
 git stash pop            # 작업 내용 꺼내기
 ```
 
+### main에 실수로 커밋했다
+
+역할 브랜치가 아니라 `main`에서 작업하고 커밋한 경우다. push는 거부되지만 **작업 내용은 그대로 있다.**
+
+**1) 확인한다**
+
+```bash
+git branch                              # * 가 main 에 있으면 해당
+git log --oneline origin/main..HEAD     # main 에만 있는 내 커밋 목록
+```
+
+**2) 작업을 역할 브랜치로 옮긴다**
+
+```bash
+git switch eda          # 본인 역할 브랜치
+git merge main          # main 에 있던 내 커밋을 가져온다
+git push
+```
+
+**3) 옮겨진 것을 눈으로 확인한 뒤, 로컬 main을 되돌린다**
+
+```bash
+git log --oneline -3          # 내 커밋이 여기 보이는지 확인 (지금 eda 브랜치)
+git switch main
+git reset --hard origin/main  # 로컬 main 을 원격과 동일하게
+```
+
+> ⚠️ 3단계의 `git reset --hard`는 **2단계의 `git push`가 성공한 것을 확인한 뒤에만** 실행한다.
+> 확신이 서지 않으면 여기서 멈추고 조장에게 물어본다. 2단계까지만 해두어도 작업은 안전하다.
+
 ### 큰 파일을 실수로 커밋했다 (push 전)
 
 ```bash
@@ -371,6 +418,7 @@ git reflog -20          # 최근 모든 이동 기록 (여기서 복구 가능)
 | 남의 역할 브랜치에 push | 담당자가 예상 못 한 충돌이 발생한다 |
 | 대용량 데이터·모델 파일 커밋 | 저장소가 무거워지고 되돌리기 어렵다 |
 | `.env`, API 키 커밋 | 보안 사고. 히스토리에 영구히 남는다 |
+| 저장소 `Settings`·`Ruleset` 변경 | push가 막히는 건 대부분 정상 동작이다. 설정이 아니라 브랜치를 확인한다 |
 
 ---
 
