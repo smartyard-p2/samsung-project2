@@ -108,6 +108,8 @@ models/*
 !models/.gitkeep
 !models/README.md
 *.pkl
+*.p
+*.pickle
 *.joblib
 *.h5
 *.hdf5
@@ -141,6 +143,8 @@ temp/
 *.sublime-workspace
 
 # ---------------- OS 생성 파일 ----------------
+# Windows에서 받은 파일을 WSL로 옮길 때 생기는 부산물
+*:Zone.Identifier
 .DS_Store
 .DS_Store?
 ._*
