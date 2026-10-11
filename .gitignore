@@ -10,7 +10,6 @@
 # ---------------- 비밀정보 (절대 커밋 금지) ----------------
 .env
 .env.*
-!.env.example
 *.pem
 *.key
 *.p12
@@ -153,3 +152,7 @@ temp/
 Thumbs.db
 ehthumbs.db
 desktop.ini
+docs/screenshots/
+
+# 로컬 참고 자료 (경비 원자료·카카오맵 검증, 커밋하지 않음)
+references/
