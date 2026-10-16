@@ -1,19 +1,48 @@
-# web — 프론트 (React + TypeScript, Vite)
+# web: React 프론트엔드
+
+React 19, TypeScript, Vite로 만든 모바일 우선 웹 화면이다.
+
+## 개발 서버
 
 ```bash
-npm install
-npm run dev     # http://localhost:5173 (API·사진은 FastAPI로 넘긴다. 주소는 web/.env 의 VITE_API_TARGET, 기본 http://localhost:8000)
-npm run build   # web/dist → FastAPI가 http://localhost:8000 에서 제공 (Docker는 이미지 빌드 때 함께 빌드)
+cd web
+npm ci
+npm run dev
 ```
 
-| 파일 | 역할 |
+기본 주소는 `http://localhost:5173`이며 API 요청은 `http://localhost:8000`으로 전달한다. API 주소를 바꾸려면 Git에 올리지 않는 `web/.env.local`을 만든다.
+
+```dotenv
+VITE_API_TARGET=http://localhost:8000
+```
+
+## 빌드와 검사
+
+```bash
+npm run build
+npm run lint
+npm run preview
+```
+
+`npm run build`는 `web/dist`를 만든다. 운영 컨테이너 반영은 저장소 루트에서 `docker compose up -d --build --no-deps api`를 실행한다.
+
+## 구조
+
+| 파일 | 화면·역할 |
 |---|---|
-| `src/FeedApp.tsx` | 앱 뼈대: 메인 피드(스토리 칩 바다·산숲·시골·도시), 하단 탭, 뒤로가기(history) 처리 |
-| `src/FeedExplore.tsx` | 탐색: 해외 사진을 대륙별로 보고 누르면 닮은 국내 여행지 찾기 |
-| `src/FeedSearch.tsx` | 사진으로 찾기: 예시 카드 → 사진 올리기 → 결과 |
-| `src/FeedRegion.tsx` | 지역 상세: 사진, 예상 경비, 축제·체험, 코스, 음식점, 출처 |
-| `src/RegionSearch.tsx` | 이름 검색 |
-| `src/AccountModal.tsx` | 로그인·회원가입 (인프라 담당) |
-| `src/api.ts` | 서버 호출과 응답 타입 (`app/schemas.py`와 같은 모양) |
-| `src/components/` | 코스, 동네 음식점, 지도, 사진 확대, 비 예보, 사진 자르기 |
-| `src/styles.css`, `feed.css`, `region.css`, `search.css` | 공통·피드·지역 상세·사진으로 찾기 스타일 |
+| `src/FeedApp.tsx` | 앱 뼈대와 하단 탭·브라우저 이력 |
+| `src/FeedExplore.tsx` | 해외 사진 탐색 |
+| `src/FeedSearch.tsx` | 사진 업로드·자르기·추천 결과 |
+| `src/FeedAsk.tsx` | AI 여행 문장 검색 |
+| `src/FeedRegion.tsx` | 지역 상세 |
+| `src/FeedMy.tsx`, `AccountSettings.tsx` | 저장·반응·계정 설정 |
+| `src/api.ts` | API 함수와 TypeScript 응답 타입 |
+| `src/components/` | 지도, 코스, 음식점, 사진, 비 예보 |
+
+## 작업 규칙
+
+- API 응답 타입은 `app/schemas.py`와 동시에 수정한다.
+- 정적 이미지와 아이콘은 `web/public/`에 둔다.
+- 비밀키는 프론트 환경 변수에 넣지 않는다. 브라우저에 들어간 값은 공개 정보다.
+- 로그인·쿠키 확인은 Vite 주소와 실제 8000번 주소에서 모두 수행한다.
+- `node_modules`와 `web/dist`는 커밋하지 않는다.

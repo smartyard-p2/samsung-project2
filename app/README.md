@@ -1,22 +1,51 @@
-# app — 백엔드 (FastAPI)
+# app: FastAPI 서비스
 
-`web/dist`(빌드된 화면)와 API를 한 서버(8000)로 제공한다. 실행·배포는 루트 README의 "실행"을 따른다.
+`app/`은 추천 엔진과 서비스 API를 묶고, 빌드된 `web/dist`를 같은 8000번 포트에서 제공한다.
+
+## 시작
 
 ```bash
-docker compose up -d --build --no-deps api      # 코드 수정 후 (시작까지 약 40초)
-docker compose restart api                      # 모델 자산 또는 DB 파생 인덱스를 다시 읽을 때
-.venv/bin/uvicorn app.main:app --port 8001      # Docker 없이 확인할 때 (8000은 Docker가 쓴다)
+docker compose up -d --build --no-deps api
+docker compose logs -f api
+curl --fail http://localhost:8000/api/health
 ```
+
+로컬 실행은 저장소 루트에서 한다.
+
+```bash
+source .venv/bin/activate
+uvicorn app.main:app --reload --port 8001
+```
+
+로컬 실행도 `.env`, PostgreSQL·Redis·MinIO, `data/`의 모델 자산이 필요하다. CLIP을 처음 받으면 시작이 오래 걸린다.
+
+## 주요 모듈
 
 | 파일 | 역할 |
 |---|---|
-| `main.py` | 앱 시작, 모든 API 경로, 사진·화면 파일 제공 |
-| `recommender.py` | 추천 엔진: 사진 → 닮은 시군구 (CLIP, `src/model` 인덱스 함수를 읽기만 함) |
-| `llm.py` | Ollama 자연어 요청 → 검증된 여행 조건·CLIP 텍스트 프롬프트 |
-| `tags.py` | 사진 장면 태그 (CLIP 텍스트 유사도) |
-| `context.py`, `regions.py` | 시군구 조건: 혼잡도(실측·예측), 날씨, 바다·산 등 필터 |
-| `activities.py`, `courses.py`, `neighborhoods.py` | 지역 상세: 관광지·축제·음식점, 공식 여행코스, 읍·면·동 |
-| `cost.py`, `travel_time.py`, `rain.py` | 예상 경비, 코스 이동 시간(카카오), 비 예보 |
-| `search.py` | 이름 검색 (읍·면·동, 장소) |
-| `schemas.py` | API 응답 모양 (`web/src/api.ts`와 같게 유지) |
-| `auth.py`, `db.py`, `models.py`, `catalog.py`, `media.py`, `settings.py`, `query_cache.py`, `email_worker.py` | 로그인·DB 관광 콘텐츠 조회·업로드 사진 보관·캐시·메일 (인프라 담당) |
+| `main.py` | 앱 수명주기, API 라우팅, 정적 화면 제공 |
+| `recommender.py` | CLIP 이미지·텍스트 임베딩, 후보 30곳, 재정렬 |
+| `llm.py` | Ollama 영어 시각 묘사와 한국어 규칙 조건 추출 |
+| `context.py`, `regions.py` | 혼잡도·기후·거리·지역 조건 |
+| `activities.py`, `courses.py`, `neighborhoods.py` | 관광지·축제·음식점·코스·읍면동 |
+| `auth.py`, `personal.py` | 로그인, 저장, 피드백, 개인 취향 |
+| `models.py`, `db.py`, `catalog.py` | SQLAlchemy 모델과 관광 콘텐츠 조회 |
+| `media.py` | MinIO 사용자 사진과 프로필 사진 |
+| `query_cache.py` | Redis 검색 결과 캐시와 메모리 대체 경로 |
+| `schemas.py` | API 요청·응답 계약. `web/src/api.ts`와 함께 수정 |
+
+## 추천 요청 흐름
+
+1. 사진은 `get_image_features()`, 문장은 `get_text_features()`로 512차원 벡터가 된다.
+2. L2 정규화된 국내 사진 벡터와 내적해 코사인 유사도를 구한다.
+3. 관광지별 최고 사진 한 장을 남기고 상위 100개 유사도를 시군구별로 합산한다.
+4. 상위 30개 후보 안에서 조건·반응·개인 취향으로 순서만 조정한다.
+
+## 변경할 때 함께 확인할 파일
+
+- API 응답 변경: `app/schemas.py`, `web/src/api.ts`, `tests/test_api.py`
+- DB 변경: `app/models.py`, `infra/migrations/versions/`, `tests/test_infrastructure.py`
+- 추천 변경: `app/recommender.py`, `src/model/`, 평가 JSON과 회귀 테스트
+- 환경 변수 변경: `app/settings.py`, `docker-compose.yml`, 루트 README
+
+`emb_kr.npz` 오류는 핵심 데이터 자산 누락인 경우가 많다. [`data/README.md`](../data/README.md)를 먼저 확인한다.
